@@ -1,9 +1,13 @@
 package com.digitalhouse.clinicaodonto.controller;
 
 import com.digitalhouse.clinicaodonto.model.Consulta;
-import com.digitalhouse.clinicaodonto.model.Dentista;
 import com.digitalhouse.clinicaodonto.service.ConsultaService;
+import com.digitalhouse.clinicaodonto.service.DentistaService;
+import com.digitalhouse.clinicaodonto.service.PacienteService;
 import com.digitalhouse.clinicaodonto.service.impl.ConsultaServiceimpl;
+import com.digitalhouse.clinicaodonto.service.impl.DentistaServiceImpl;
+import com.digitalhouse.clinicaodonto.service.impl.EnderecoServiceImpl;
+import com.digitalhouse.clinicaodonto.service.impl.PacienteServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +19,20 @@ import java.util.List;
 
 public class ConsultaController {
     private ConsultaService consultaService = new ConsultaService(new ConsultaServiceimpl());
+    private DentistaService dentistaService = new DentistaService(new DentistaServiceImpl());
+    private PacienteService pacienteService = new PacienteService(new PacienteServiceImpl(new EnderecoServiceImpl()));
 
     @PostMapping()
     public ResponseEntity<Consulta> cadastrar(@RequestBody Consulta consulta) {
-        return ResponseEntity.ok(consultaService.cadastrar(consulta));
+        ResponseEntity<Consulta> response = null;
+        if (dentistaService.buscar(consulta.getDentista().getId()).isPresent()&& pacienteService.buscar(consulta.getPaciente().getId()).isPresent()){
+            response= ResponseEntity.ok(consultaService.cadastrar(consulta));
+        } else{
+            response= ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+        }
+
+        return response;
     }
 
     @GetMapping("/{id}")
